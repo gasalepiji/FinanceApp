@@ -96,21 +96,19 @@ Untuk memastikan kinerja optimal, pastikan sistem Anda memenuhi persyaratan beri
    npm i express fs path url
    ```
 
-3. **Ruang Penyimpanan**: Minimal 100MB ruang disk tersedia untuk penyimpanan data dan caching aplikasi.
+3. **Ruang Penyimpanan**: Minimal 10MB ruang disk tersedia untuk penyimpanan data dan caching aplikasi.
 
-4. **Koneksi Internet**: Diperlukan hanya untuk pembaruan aplikasi; operasi sehari-hari dapat dilakukan secara offline.
+4. **Koneksi Internet**: Diperlukan hanya untuk melakukan styling agar visualisasi lebih baik.
 
 ## Teknologi yang Digunakan
 
 FinanceApp dibangun menggunakan teknologi web modern untuk memastikan kinerja, keandalan, dan keamanan:
 
-- **Frontend**: HTML5, CSS3, JavaScript dengan framework responsif untuk pengalaman pengguna yang optimal di semua perangkat.
+- **Frontend**: HTML5, Tailwind Css (via CDN), JavaScript dengan pengalaman pengguna yang optimal di semua perangkat.
 
 - **Backend**: Node.js dengan Express.js untuk API yang cepat dan efisien.
 
-- **Database**: Sistem penyimpanan data lokal yang aman dengan pencadangan reguler.
-
-- **Visualisasi**: Library grafik JavaScript canggih untuk visualisasi data yang interaktif dan informatif.
+- **Database**: Sistem penyimpanan data lokal `data/data.json` yang aman dengan pencadangan reguler.
 
 ## Pengembangan Masa Depan
 
@@ -127,10 +125,6 @@ Tim kami berkomitmen untuk terus meningkatkan FinanceApp dengan fitur-fitur baru
 ## Dukungan dan Umpan Balik
 
 Kami sangat menghargai masukan dari pengguna untuk meningkatkan aplikasi:
-
-- **Dokumentasi**: Panduan pengguna komprehensif tersedia di direktori `/docs`.
-
-- **Forum Komunitas**: Bergabunglah dengan komunitas FinanceApp untuk berbagi tips dan mendapatkan bantuan.
 
 - **Laporan Bug**: Laporkan masalah atau usulkan fitur melalui repositori GitHub kami.
 
