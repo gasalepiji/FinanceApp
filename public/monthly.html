@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finance Manager - Monthly Report</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3b82f6',
+            secondary: '#10b981',
+            danger: '#ef4444',
+            dark: '#1e293b',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .nav-link.active {
+      background-color: rgba(59, 130, 246, 0.1);
+      border-left: 4px solid #3b82f6;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <div class="w-64 bg-white shadow-md">
+      <div class="p-4 border-b">
+        <h1 class="text-2xl font-bold text-primary">Finance Manager</h1>
+      </div>
+      <nav class="mt-4">
+        <a href="/" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-home mr-3"></i> Home
+        </a>
+        <a href="/profile" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-user mr-3"></i> Profile
+        </a>
+        <a href="/income" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-plus-circle mr-3"></i> Income
+        </a>
+        <a href="/expense" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-minus-circle mr-3"></i> Expense
+        </a>
+        <a href="/weekly" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-calendar-week mr-3"></i> Weekly Report
+        </a>
+        <a href="/monthly" class="nav-link active flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-calendar-alt mr-3"></i> Monthly Report
+        </a>
+        <a href="/yearly" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-chart-line mr-3"></i> Yearly Report
+        </a>
+      </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto">
+      <header class="bg-white shadow-sm">
+        <div class="px-6 py-4 flex justify-between items-center">
+          <h2 class="text-xl font-semibold text-gray-800">Monthly Report</h2>
+          <div class="flex space-x-2">
+            <button id="exportExcel" class="px-3 py-1 bg-green-600 text-white rounded-md flex items-center">
+              <i class="fas fa-file-excel mr-2"></i> Export to Excel
+            </button>
+            <button id="exportPNG" class="px-3 py-1 bg-blue-600 text-white rounded-md flex items-center">
+              <i class="fas fa-file-image mr-2"></i> Export to PNG
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main class="p-6">
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+              <div class="p-3 rounded-full bg-green-100 text-green-500">
+                <i class="fas fa-arrow-up text-xl"></i>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm text-gray-500 font-medium">Monthly Income</p>
+                <h3 class="text-2xl font-bold text-gray-700" id="monthlyIncome">Loading...</h3>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+              <div class="p-3 rounded-full bg-red-100 text-red-500">
+                <i class="fas fa-arrow-down text-xl"></i>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm text-gray-500 font-medium">Monthly Expense</p>
+                <h3 class="text-2xl font-bold text-gray-700" id="monthlyExpense">Loading...</h3>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+              <div class="p-3 rounded-full bg-blue-100 text-blue-500">
+                <i class="fas fa-wallet text-xl"></i>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm text-gray-500 font-medium">Net Balance</p>
+                <h3 class="text-2xl font-bold text-gray-700" id="monthlyNet">Loading...</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">Daily Transactions</h3>
+            <canvas id="dailyChart" height="300"></canvas>
+          </div>
+          
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">Expense Categories</h3>
+            <canvas id="categoryChart" height="300"></canvas>
+          </div>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h3 class="text-lg font-semibold text-gray-700 mb-4">This Month's Transactions</h3>
+          <div class="overflow-x-auto">
+            <table class="min-w-full bg-white">
+              <thead>
+                <tr>
+                  <th class="py-2 px-4 border-b text-left">Date</th>
+                  <th class="py-2 px-4 border-b text-left">Type</th>
+                  <th class="py-2 px-4 border-b text-left">Category</th>
+                  <th class="py-2 px-4 border-b text-left">Description</th>
+                  <th class="py-2 px-4 border-b text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody id="monthlyTransactions">
+                <tr>
+                  <td class="py-2 px-4 border-b" colspan="5">Loading transactions...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Set active navigation link
+    document.addEventListener('DOMContentLoaded', function() {
+      const path = window.location.pathname;
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === path) {
+          link.classList.add('active');
+        }
+      });
+
+      // Fetch monthly statistics
+      fetch('/api/statistics/monthly')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('monthlyIncome').textContent = formatCurrency(data.income);
+          document.getElementById('monthlyExpense').textContent = formatCurrency(data.expense);
+          document.getElementById('monthlyNet').textContent = formatCurrency(data.net);
+          
+          // Set net balance color based on value
+          const netElement = document.getElementById('monthlyNet');
+          if (data.net < 0) {
+            netElement.classList.add('text-red-600');
+          } else if (data.net > 0) {
+            netElement.classList.add('text-green-600');
+          }
+        })
+        .catch(error => console.error('Error fetching monthly stats:', error));
+
+      // Fetch monthly transactions
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1;
+      const monthStr = month < 10 ? `0${month}` : `${month}`;
+      const monthPrefix = `${year}-${monthStr}`;
+      
+      fetch('/api/transactions')
+        .then(response => response.json())
+        .then(data => {
+          const monthlyTransactions = data.filter(t => t.date.startsWith(monthPrefix)).sort((a, b) => new Date(b.date) - new Date(a.date));
+          const tableBody = document.getElementById('monthlyTransactions');
+          
+          if (monthlyTransactions.length === 0) {
+            tableBody.innerHTML = '<tr><td class="py-2 px-4 border-b" colspan="5">No transactions this month</td></tr>';
+            return;
+          }
+          
+          tableBody.innerHTML = '';
+          monthlyTransactions.forEach(transaction => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td class="py-2 px-4 border-b">${formatDate(transaction.date)}</td>
+              <td class="py-2 px-4 border-b">
+                <span class="px-2 py-1 rounded-full text-xs ${transaction.type === 'income' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                  ${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
+                </span>
+              </td>
+              <td class="py-2 px-4 border-b">${transaction.category}</td>
+              <td class="py-2 px-4 border-b">${transaction.description || '-'}</td>
+              <td class="py-2 px-4 border-b text-right ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}">
+                ${formatCurrency(transaction.amount)}
+              </td>
+            `;
+            tableBody.appendChild(row);
+          });
+          
+          // Prepare data for daily chart
+          fetch('/api/statistics/chart')
+            .then(response => response.json())
+            .then(chartData => {
+              renderDailyChart(chartData);
+            })
+            .catch(error => console.error('Error fetching chart data:', error));
+          
+          // Prepare data for category chart
+          const expensesByCategory = {};
+          monthlyTransactions.filter(t => t.type === 'expense').forEach(expense => {
+            if (!expensesByCategory[expense.category]) {
+              expensesByCategory[expense.category] = 0;
+            }
+            expensesByCategory[expense.category] += expense.amount;
+          });
+          
+          renderCategoryChart(expensesByCategory);
+        })
+        .catch(error => console.error('Error fetching transactions:', error));
+    });
+
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+      }).format(amount);
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat('id-ID', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      }).format(date);
+    }
+
+    function renderDailyChart(data) {
+      const ctx = document.getElementById('dailyChart').getContext('2d');
+      
+      const labels = data.map(item => item.day);
+      const incomeData = data.map(item => item.income);
+      const expenseData = data.map(item => item.expense);
+      
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Income',
+              data: incomeData,
+              backgroundColor: 'rgba(16, 185, 129, 0.2)',
+              borderColor: 'rgb(16, 185, 129)',
+              borderWidth: 2,
+              tension: 0.1
+            },
+            {
+              label: 'Expense',
+              data: expenseData,
+              backgroundColor: 'rgba(239, 68, 68, 0.2)',
+              borderColor: 'rgb(239, 68, 68)',
+              borderWidth: 2,
+              tension: 0.1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return 'Rp ' + value.toLocaleString('id-ID');
+                }
+              }
+            }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': ' + formatCurrency(context.raw);
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderCategoryChart(expensesByCategory) {
+      const ctx = document.getElementById('categoryChart').getContext('2d');
+      
+      const categories = Object.keys(expensesByCategory);
+      const amounts = Object.values(expensesByCategory);
+      
+      // Generate colors for each category
+      const backgroundColors = [
+        'rgba(255, 99, 132, 0.7)',
+        'rgba(54, 162, 235, 0.7)',
+        'rgba(255, 206, 86, 0.7)',
+        'rgba(75, 192, 192, 0.7)',
+        'rgba(153, 102, 255, 0.7)',
+        'rgba(255, 159, 64, 0.7)',
+        'rgba(199, 199, 199, 0.7)',
+        'rgba(83, 102, 255, 0.7)',
+        'rgba(40, 159, 64, 0.7)',
+        'rgba(210, 199, 199, 0.7)'
+      ];
+      
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: categories,
+          datasets: [{
+            data: amounts,
+            backgroundColor: backgroundColors.slice(0, categories.length),
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.raw;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = Math.round((value / total) * 100);
+                  return `${label}: ${formatCurrency(value)} (${percentage}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Export to Excel functionality
+    document.getElementById('exportExcel').addEventListener('click', function() {
+      // Create a new workbook
+      const wb = XLSX.utils.book_new();
+      
+      // Get monthly data
+      fetch('/api/statistics/monthly')
+        .then(response => response.json())
+        .then(summaryData => {
+          // Create a worksheet for summary
+          const summaryWs = XLSX.utils.json_to_sheet([{
+            Month: new Date().toLocaleString('default', { month: 'long' }),
+            Year: summaryData.year,
+            Income: summaryData.income,
+            Expense: summaryData.expense,
+            Net: summaryData.net
+          }]);
+          
+          // Add summary worksheet to workbook
+          XLSX.utils.book_append_sheet(wb, summaryWs, "Summary");
+          
+          // Get transactions for the month
+          fetch('/api/transactions')
+            .then(response => response.json())
+            .then(data => {
+              const now = new Date();
+              const year = now.getFullYear();
+              const month = now.getMonth() + 1;
+              const monthStr = month < 10 ? `0${month}` : `${month}`;
+              const monthPrefix = `${year}-${monthStr}`;
+              
+              const monthlyTransactions = data
+                .filter(t => t.date.startsWith(monthPrefix))
+                .map(t => ({
+                  Date: t.date,
+                  Type: t.type.charAt(0).toUpperCase() + t.type.slice(1),
+                  Category: t.category,
+                  Description: t.description || '-',
+                  Amount: t.amount
+                }));
+              
+              if (monthlyTransactions.length > 0) {
+                // Create a worksheet for transactions
+                const transactionsWs = XLSX.utils.json_to_sheet(monthlyTransactions);
+                
+                // Add transactions worksheet to workbook
+                XLSX.utils.book_append_sheet(wb, transactionsWs, "Transactions");
+              }
+              
+              // Generate Excel file
+              const fileName = `Monthly_Finance_Report_${year}_${monthStr}.xlsx`;
+              XLSX.writeFile(wb, fileName);
+            });
+        })
+        .catch(error => console.error('Error exporting to Excel:', error));
+    });
+
+    // Export to PNG functionality
+    document.getElementById('exportPNG').addEventListener('click', function() {
+      const reportContent = document.querySelector('main');
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1;
+      const monthStr = month < 10 ? `0${month}` : `${month}`;
+      
+      html2canvas(reportContent, {
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        allowTaint: true
+      }).then(canvas => {
+        // Create image
+        const imgData = canvas.toDataURL('image/png');
+        
+        // Create download link
+        const link = document.createElement('a');
+        link.href = imgData;
+        link.download = `Monthly_Finance_Report_${year}_${monthStr}.png`;
+        link.click();
+      });
+    });
+
+    // Check for new month and auto-download
+    function checkForNewMonth() {
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentDate = now.getDate();
+      
+      // Check if it's the first day of the month
+      if (currentDate === 1) {
+        // Get last visit from localStorage
+        const lastVisit = localStorage.getItem('lastMonthlyVisit');
+        
+        if (lastVisit) {
+          const lastVisitDate = new Date(lastVisit);
+          const lastVisitMonth = lastVisitDate.getMonth();
+          
+          // If we're in a new month compared to the last visit
+          if (currentMonth !== lastVisitMonth) {
+            // Auto-download the previous month's report
+            setTimeout(() => {
+              alert('New month detected! Downloading previous month report...');
+              document.getElementById('exportExcel').click();
+            }, 1000);
+          }
+        }
+      }
+      
+      // Update last visit
+      localStorage.setItem('lastMonthlyVisit', now.toString());
+    }
+
+    // Run the check when the page loads
+    checkForNewMonth();
+  </script>
+</body>
+</html>

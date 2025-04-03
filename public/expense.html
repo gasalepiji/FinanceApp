@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finance Manager - Expense</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3b82f6',
+            secondary: '#10b981',
+            danger: '#ef4444',
+            dark: '#1e293b',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .nav-link.active {
+      background-color: rgba(59, 130, 246, 0.1);
+      border-left: 4px solid #3b82f6;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <div class="w-64 bg-white shadow-md">
+      <div class="p-4 border-b">
+        <h1 class="text-2xl font-bold text-primary">Finance Manager</h1>
+      </div>
+      <nav class="mt-4">
+        <a href="/" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-home mr-3"></i> Home
+        </a>
+        <a href="/profile" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-user mr-3"></i> Profile
+        </a>
+        <a href="/income" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-plus-circle mr-3"></i> Income
+        </a>
+        <a href="/expense" class="nav-link active flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-minus-circle mr-3"></i> Expense
+        </a>
+        <a href="/weekly" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-calendar-week mr-3"></i> Weekly Report
+        </a>
+        <a href="/monthly" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-calendar-alt mr-3"></i> Monthly Report
+        </a>
+        <a href="/yearly" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-chart-line mr-3"></i> Yearly Report
+        </a>
+      </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto">
+      <header class="bg-white shadow-sm">
+        <div class="px-6 py-4">
+          <h2 class="text-xl font-semibold text-gray-800">Add Expense</h2>
+        </div>
+      </header>
+
+      <main class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Expense Form -->
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">New Expense</h3>
+            <form id="expenseForm" class="space-y-4">
+              <div>
+                <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                <div class="relative">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span class="text-gray-500">Rp</span>
+                  </div>
+                  <input type="number" id="amount" name="amount" required
+                    class="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                    placeholder="0">
+                </div>
+              </div>
+              
+              <div>
+                <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <select id="category" name="category" required
+                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
+                  <option value="">Select a category</option>
+                  <option value="Food">Food & Drinks</option>
+                  <option value="Transportation">Transportation</option>
+                  <option value="Housing">Housing</option>
+                  <option value="Utilities">Utilities</option>
+                  <option value="Entertainment">Entertainment</option>
+                  <option value="Shopping">Shopping</option>
+                  <option value="Health">Health</option>
+                  <option value="Education">Education</option>
+                  <option value="Personal">Personal</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              
+              <div>
+                <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description (Optional)</label>
+                <textarea id="description" name="description" rows="3"
+                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                  placeholder="Add details about this expense"></textarea>
+              </div>
+              
+              <div>
+                <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                <input type="date" id="date" name="date" required
+                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
+              </div>
+              
+              <div>
+                <button type="submit"
+                  class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-danger hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-danger">
+                  Add Expense
+                </button>
+              </div>
+            </form>
+          </div>
+          
+          <!-- Recent Expenses -->
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">Recent Expenses</h3>
+            <div class="overflow-x-auto">
+              <table class="min-w-full bg-white">
+                <thead>
+                  <tr>
+                    <th class="py-2 px-4 border-b text-left">Date</th>
+                    <th class="py-2 px-4 border-b text-left">Category</th>
+                    <th class="py-2 px-4 border-b text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody id="recentExpenses">
+                  <tr>
+                    <td class="py-2 px-4 border-b" colspan="3">Loading expenses...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg transform transition-transform duration-300 translate-y-[-100px]">
+    <div id="toastContent" class="flex items-center"></div>
+  </div>
+
+  <script>
+    // Set active navigation link
+    document.addEventListener('DOMContentLoaded', function() {
+      const path = window.location.pathname;
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === path) {
+          link.classList.add('active');
+        }
+      });
+
+      // Set default date to today
+      document.getElementById('date').valueAsDate = new Date();
+
+      // Fetch recent expenses
+      fetchRecentExpenses();
+
+      // Handle form submission
+      document.getElementById('expenseForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const expenseData = {
+          type: 'expense',
+          amount: parseFloat(formData.get('amount')),
+          category: formData.get('category'),
+          description: formData.get('description'),
+          date: formData.get('date')
+        };
+        
+        fetch('/api/transactions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(expenseData)
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to add expense');
+          }
+          return response.json();
+        })
+        .then(data => {
+          // Reset form
+          document.getElementById('expenseForm').reset();
+          document.getElementById('date').valueAsDate = new Date();
+          
+          // Show success toast
+          showToast('Expense added successfully!', 'success');
+          
+          // Refresh recent expenses
+          fetchRecentExpenses();
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showToast('Failed to add expense. Please try again.', 'error');
+        });
+      });
+    });
+
+    function fetchRecentExpenses() {
+      fetch('/api/transactions')
+        .then(response => response.json())
+        .then(data => {
+          const expenses = data.filter(t => t.type === 'expense').slice(-5).reverse(); // Get last 5 expenses
+          const tableBody = document.getElementById('recentExpenses');
+          
+          if (expenses.length === 0) {
+            tableBody.innerHTML = '<tr><td class="py-2 px-4 border-b" colspan="3">No expenses found</td></tr>';
+            return;
+          }
+          
+          tableBody.innerHTML = '';
+          expenses.forEach(expense => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td class="py-2 px-4 border-b">${formatDate(expense.date)}</td>
+              <td class="py-2 px-4 border-b">${expense.category}</td>
+              <td class="py-2 px-4 border-b text-right text-red-600">${formatCurrency(expense.amount)}</td>
+            `;
+            tableBody.appendChild(row);
+          });
+        })
+        .catch(error => console.error('Error fetching expenses:', error));
+    }
+
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+      }).format(amount);
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat('id-ID', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      }).format(date);
+    }
+
+    function showToast(message, type) {
+      const toast = document.getElementById('toast');
+      const toastContent = document.getElementById('toastContent');
+      
+      // Set content and style based on type
+      if (type === 'success') {
+        toastContent.innerHTML = `
+          <div class="p-2 rounded-full bg-green-100 text-green-500 mr-2">
+            <i class="fas fa-check"></i>
+          </div>
+          <span>${message}</span>
+        `;
+        toast.className = 'fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg bg-white border-l-4 border-green-500 transform transition-transform duration-300';
+      } else {
+        toastContent.innerHTML = `
+          <div class="p-2 rounded-full bg-red-100 text-red-500 mr-2">
+            <i class="fas fa-times"></i>
+          </div>
+          <span>${message}</span>
+        `;
+        toast.className = 'fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg bg-white border-l-4 border-red-500 transform transition-transform duration-300';
+      }
+      
+      // Show toast
+      toast.style.transform = 'translateY(0)';
+      
+      // Hide toast after 3 seconds
+      setTimeout(() => {
+        toast.style.transform = 'translateY(-100px)';
+      }, 3000);
+    }
+  </script>
+</body>
+</html>

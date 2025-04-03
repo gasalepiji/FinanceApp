@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finance Manager - Profile</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3b82f6',
+            secondary: '#10b981',
+            danger: '#ef4444',
+            dark: '#1e293b',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .nav-link.active {
+      background-color: rgba(59, 130, 246, 0.1);
+      border-left: 4px solid #3b82f6;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <div class="w-64 bg-white shadow-md">
+      <div class="p-4 border-b">
+        <h1 class="text-2xl font-bold text-primary">Finance Manager</h1>
+      </div>
+      <nav class="mt-4">
+        <a href="/" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-home mr-3"></i> Home
+        </a>
+        <a href="/profile" class="nav-link active flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-user mr-3"></i> Profile
+        </a>
+        <a href="/income" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-plus-circle mr-3"></i> Income
+        </a>
+        <a href="/expense" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-minus-circle mr-3"></i> Expense
+        </a>
+        <a href="/weekly" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-calendar-week mr-3"></i> Weekly Report
+        </a>
+        <a href="/monthly" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-calendar-alt mr-3"></i> Monthly Report
+        </a>
+        <a href="/yearly" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-chart-line mr-3"></i> Yearly Report
+        </a>
+      </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto">
+      <header class="bg-white shadow-sm">
+        <div class="px-6 py-4">
+          <h2 class="text-xl font-semibold text-gray-800">Profile</h2>
+        </div>
+      </header>
+
+      <main class="p-6">
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+          <div class="flex flex-col md:flex-row items-center">
+            <div class="w-32 h-32 rounded-full bg-primary flex items-center justify-center text-white text-4xl font-bold mb-4 md:mb-0 md:mr-6">
+              <span id="profileInitials">AL</span>
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800" id="profileName">Alfie Luxiona Lexandra</h3>
+              <p class="text-gray-500 mt-1">+62*******272</p>
+              
+              <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p class="text-sm text-gray-500">Current Balance</p>
+                  <p class="text-xl font-bold text-gray-800" id="profileBalance">Loading...</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-500">Today's Expenses</p>
+                  <p class="text-xl font-bold text-gray-800" id="todayExpenses">Loading...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+          <h3 class="text-lg font-semibold text-gray-700 mb-4">Today's Transactions</h3>
+          <div class="overflow-x-auto">
+            <table class="min-w-full bg-white">
+              <thead>
+                <tr>
+                  <th class="py-2 px-4 border-b text-left">Time</th>
+                  <th class="py-2 px-4 border-b text-left">Type</th>
+                  <th class="py-2 px-4 border-b text-left">Category</th>
+                  <th class="py-2 px-4 border-b text-left">Description</th>
+                  <th class="py-2 px-4 border-b text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody id="todayTransactions">
+                <tr>
+                  <td class="py-2 px-4 border-b" colspan="5">Loading transactions...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Set active navigation link
+    document.addEventListener('DOMContentLoaded', function() {
+      const path = window.location.pathname;
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === path) {
+          link.classList.add('active');
+        }
+      });
+
+      // Set profile initials
+      const name = "Alfie Luxiona Lexandra";
+      const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2);
+      document.getElementById('profileInitials').textContent = initials;
+      
+      // Fetch profile data
+      fetch('/api/profile')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('profileName').textContent = data.name;
+          document.getElementById('profileBalance').textContent = formatCurrency(data.balance);
+        })
+        .catch(error => console.error('Error fetching profile:', error));
+
+      // Fetch daily statistics
+      fetch('/api/statistics/daily')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('todayExpenses').textContent = formatCurrency(data.totalExpense);
+        })
+        .catch(error => console.error('Error fetching daily stats:', error));
+
+      // Fetch today's transactions
+      const today = new Date().toISOString().split('T')[0];
+      fetch('/api/transactions')
+        .then(response => response.json())
+        .then(data => {
+          const todayTransactions = data.filter(t => t.date === today);
+          const tableBody = document.getElementById('todayTransactions');
+          
+          if (todayTransactions.length === 0) {
+            tableBody.innerHTML = '<tr><td class="py-2 px-4 border-b" colspan="5">No transactions today</td></tr>';
+            return;
+          }
+          
+          tableBody.innerHTML = '';
+          todayTransactions.forEach(transaction => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td class="py-2 px-4 border-b">${new Date().toLocaleTimeString()}</td>
+              <td class="py-2 px-4 border-b">
+                <span class="px-2 py-1 rounded-full text-xs ${transaction.type === 'income' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                  ${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
+                </span>
+              </td>
+              <td class="py-2 px-4 border-b">${transaction.category}</td>
+              <td class="py-2 px-4 border-b">${transaction.description || '-'}</td>
+              <td class="py-2 px-4 border-b text-right ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}">
+                ${formatCurrency(transaction.amount)}
+              </td>
+            `;
+            tableBody.appendChild(row);
+          });
+        })
+        .catch(error => console.error('Error fetching transactions:', error));
+    });
+
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+      }).format(amount);
+    }
+  </script>
+</body>
+</html>

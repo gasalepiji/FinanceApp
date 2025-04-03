@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finance Manager - Weekly Report</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3b82f6',
+            secondary: '#10b981',
+            danger: '#ef4444',
+            dark: '#1e293b',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .nav-link.active {
+      background-color: rgba(59, 130, 246, 0.1);
+      border-left: 4px solid #3b82f6;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <div class="w-64 bg-white shadow-md">
+      <div class="p-4 border-b">
+        <h1 class="text-2xl font-bold text-primary">Finance Manager</h1>
+      </div>
+      <nav class="mt-4">
+        <a href="/" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-home mr-3"></i> Home
+        </a>
+        <a href="/profile" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-user mr-3"></i> Profile
+        </a>
+        <a href="/income" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-plus-circle mr-3"></i> Income
+        </a>
+        <a href="/expense" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-minus-circle mr-3"></i> Expense
+        </a>
+        <a href="/weekly" class="nav-link active flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-calendar-week mr-3"></i> Weekly Report
+        </a>
+        <a href="/monthly" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-calendar-alt mr-3"></i> Monthly Report
+        </a>
+        <a href="/yearly" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-chart-line mr-3"></i> Yearly Report
+        </a>
+      </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto">
+      <header class="bg-white shadow-sm">
+        <div class="px-6 py-4">
+          <h2 class="text-xl font-semibold text-gray-800">Weekly Report</h2>
+        </div>
+      </header>
+
+      <main class="p-6">
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+              <div class="p-3 rounded-full bg-green-100 text-green-500">
+                <i class="fas fa-arrow-up text-xl"></i>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm text-gray-500 font-medium">Weekly Income</p>
+                <h3 class="text-2xl font-bold text-gray-700" id="weeklyIncome">Loading...</h3>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+              <div class="p-3 rounded-full bg-red-100 text-red-500">
+                <i class="fas fa-arrow-down text-xl"></i>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm text-gray-500 font-medium">Weekly Expense</p>
+                <h3 class="text-2xl font-bold text-gray-700" id="weeklyExpense">Loading...</h3>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+              <div class="p-3 rounded-full bg-blue-100 text-blue-500">
+                <i class="fas fa-wallet text-xl"></i>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm text-gray-500 font-medium">Net Balance</p>
+                <h3 class="text-2xl font-bold text-gray-700" id="weeklyNet">Loading...</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+          <h3 class="text-lg font-semibold text-gray-700 mb-4">Weekly Overview</h3>
+          <canvas id="weeklyChart" height="300"></canvas>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h3 class="text-lg font-semibold text-gray-700 mb-4">This Week's Transactions</h3>
+          <div class="overflow-x-auto">
+            <table class="min-w-full bg-white">
+              <thead>
+                <tr>
+                  <th class="py-2 px-4 border-b text-left">Date</th>
+                  <th class="py-2 px-4 border-b text-left">Type</th>
+                  <th class="py-2 px-4 border-b text-left">Category</th>
+                  <th class="py-2 px-4 border-b text-left">Description</th>
+                  <th class="py-2 px-4 border-b text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody id="weeklyTransactions">
+                <tr>
+                  <td class="py-2 px-4 border-b" colspan="5">Loading transactions...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Set active navigation link
+    document.addEventListener('DOMContentLoaded', function() {
+      const path = window.location.pathname;
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === path) {
+          link.classList.add('active');
+        }
+      });
+
+      // Fetch weekly statistics
+      fetch('/api/statistics/weekly')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('weeklyIncome').textContent = formatCurrency(data.income);
+          document.getElementById('weeklyExpense').textContent = formatCurrency(data.expense);
+          document.getElementById('weeklyNet').textContent = formatCurrency(data.net);
+          
+          // Set net balance color based on value
+          const netElement = document.getElementById('weeklyNet');
+          if (data.net < 0) {
+            netElement.classList.add('text-red-600');
+          } else if (data.net > 0) {
+            netElement.classList.add('text-green-600');
+          }
+        })
+        .catch(error => console.error('Error fetching weekly stats:', error));
+
+      // Fetch weekly transactions
+      const now = new Date();
+      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      
+      fetch('/api/transactions')
+        .then(response => response.json())
+        .then(data => {
+          const weeklyTransactions = data.filter(t => t.date >= oneWeekAgo).sort((a, b) => new Date(b.date) - new Date(a.date));
+          const tableBody = document.getElementById('weeklyTransactions');
+          
+          if (weeklyTransactions.length === 0) {
+            tableBody.innerHTML = '<tr><td class="py-2 px-4 border-b" colspan="5">No transactions this week</td></tr>';
+            return;
+          }
+          
+          tableBody.innerHTML = '';
+          weeklyTransactions.forEach(transaction => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td class="py-2 px-4 border-b">${formatDate(transaction.date)}</td>
+              <td class="py-2 px-4 border-b">
+                <span class="px-2 py-1 rounded-full text-xs ${transaction.type === 'income' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                  ${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
+                </span>
+              </td>
+              <td class="py-2 px-4 border-b">${transaction.category}</td>
+              <td class="py-2 px-4 border-b">${transaction.description || '-'}</td>
+              <td class="py-2 px-4 border-b text-right ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}">
+                ${formatCurrency(transaction.amount)}
+              </td>
+            `;
+            tableBody.appendChild(row);
+          });
+          
+          // Prepare data for chart
+          const days = [];
+          const incomeData = [];
+          const expenseData = [];
+          
+          // Get last 7 days
+          for (let i = 6; i >= 0; i--) {
+            const date = new Date(now);
+            date.setDate(date.getDate() - i);
+            const dateString = date.toISOString().split('T')[0];
+            
+            const dayTransactions = weeklyTransactions.filter(t => t.date === dateString);
+            const dayIncome = dayTransactions
+              .filter(t => t.type === 'income')
+              .reduce((sum, t) => sum + t.amount, 0);
+            const dayExpense = dayTransactions
+              .filter(t => t.type === 'expense')
+              .reduce((sum, t) => sum + t.amount, 0);
+            
+            days.push(formatDayOfWeek(date));
+            incomeData.push(dayIncome);
+            expenseData.push(dayExpense);
+          }
+          
+          renderChart(days, incomeData, expenseData);
+        })
+        .catch(error => console.error('Error fetching transactions:', error));
+    });
+
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+      }).format(amount);
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat('id-ID', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      }).format(date);
+    }
+
+    function formatDayOfWeek(date) {
+      return new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(date);
+    }
+
+    function renderChart(days, incomeData, expenseData) {
+      const ctx = document.getElementById('weeklyChart').getContext('2d');
+      
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: days,
+          datasets: [
+            {
+              label: 'Income',
+              data: incomeData,
+              backgroundColor: 'rgba(16, 185, 129, 0.7)',
+              borderColor: 'rgb(16, 185, 129)',
+              borderWidth: 1
+            },
+            {
+              label: 'Expense',
+              data: expenseData,
+              backgroundColor: 'rgba(239, 68, 68, 0.7)',
+              borderColor: 'rgb(239, 68, 68)',
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return 'Rp ' + value.toLocaleString('id-ID');
+                }
+              }
+            }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': ' + formatCurrency(context.raw);
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>

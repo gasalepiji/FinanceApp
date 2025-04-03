@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finance Manager - Yearly Report</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3b82f6',
+            secondary: '#10b981',
+            danger: '#ef4444',
+            dark: '#1e293b',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .nav-link.active {
+      background-color: rgba(59, 130, 246, 0.1);
+      border-left: 4px solid #3b82f6;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <div class="w-64 bg-white shadow-md">
+      <div class="p-4 border-b">
+        <h1 class="text-2xl font-bold text-primary">Finance Manager</h1>
+      </div>
+      <nav class="mt-4">
+        <a href="/" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-home mr-3"></i> Home
+        </a>
+        <a href="/profile" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-user mr-3"></i> Profile
+        </a>
+        <a href="/income" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-plus-circle mr-3"></i> Income
+        </a>
+        <a href="/expense" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-minus-circle mr-3"></i> Expense
+        </a>
+        <a href="/weekly" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-calendar-week mr-3"></i> Weekly Report
+        </a>
+        <a href="/monthly" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-calendar-alt mr-3"></i> Monthly Report
+        </a>
+        <a href="/yearly" class="nav-link active flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-chart-line mr-3"></i> Yearly Report
+        </a>
+      </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto">
+      <header class="bg-white shadow-sm">
+        <div class="px-6 py-4 flex justify-between items-center">
+          <h2 class="text-xl font-semibold text-gray-800">Yearly Report</h2>
+          <div class="flex space-x-2">
+            <button id="exportExcel" class="px-3 py-1 bg-green-600 text-white rounded-md flex items-center">
+              <i class="fas fa-file-excel mr-2"></i> Export to Excel
+            </button>
+            <button id="exportPNG" class="px-3 py-1 bg-blue-600 text-white rounded-md flex items-center">
+              <i class="fas fa-file-image mr-2"></i> Export to PNG
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main class="p-6">
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+              <div class="p-3 rounded-full bg-green-100 text-green-500">
+                <i class="fas fa-arrow-up text-xl"></i>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm text-gray-500 font-medium">Yearly Income</p>
+                <h3 class="text-2xl font-bold text-gray-700" id="yearlyIncome">Loading...</h3>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+              <div class="p-3 rounded-full bg-red-100 text-red-500">
+                <i class="fas fa-arrow-down text-xl"></i>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm text-gray-500 font-medium">Yearly Expense</p>
+                <h3 class="text-2xl font-bold text-gray-700" id="yearlyExpense">Loading...</h3>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+              <div class="p-3 rounded-full bg-blue-100 text-blue-500">
+                <i class="fas fa-wallet text-xl"></i>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm text-gray-500 font-medium">Net Balance</p>
+                <h3 class="text-2xl font-bold text-gray-700" id="yearlyNet">Loading...</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">Monthly Overview</h3>
+            <canvas id="monthlyOverviewChart" height="300"></canvas>
+          </div>
+          
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">Income vs Expense</h3>
+            <canvas id="incomeExpenseChart" height="300"></canvas>
+          </div>
+        </div>
+
+        <!-- Yearly Summary Table -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h3 class="text-lg font-semibold text-gray-700 mb-4">Yearly Summary by Month</h3>
+          <div class="overflow-x-auto">
+            <table class="min-w-full bg-white">
+              <thead>
+                <tr>
+                  <th class="py-2 px-4 border-b text-left">Month</th>
+                  <th class="py-2 px-4 border-b text-right">Income</th>
+                  <th class="py-2 px-4 border-b text-right">Expense</th>
+                  <th class="py-2 px-4 border-b text-right">Net</th>
+                </tr>
+              </thead>
+              <tbody id="yearlySummary">
+                <tr>
+                  <td class="py-2 px-4 border-b" colspan="4">Loading summary...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Set active navigation link
+    document.addEventListener('DOMContentLoaded', function() {
+      const path = window.location.pathname;
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === path) {
+          link.classList.add('active');
+        }
+      });
+
+      // Fetch yearly statistics
+      fetch('/api/statistics/yearly')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('yearlyIncome').textContent = formatCurrency(data.income);
+          document.getElementById('yearlyExpense').textContent = formatCurrency(data.expense);
+          document.getElementById('yearlyNet').textContent = formatCurrency(data.net);
+          
+          // Set net balance color based on value
+          const netElement = document.getElementById('yearlyNet');
+          if (data.net < 0) {
+            netElement.classList.add('text-red-600');
+          } else if (data.net > 0) {
+            netElement.classList.add('text-green-600');
+          }
+        })
+        .catch(error => console.error('Error fetching yearly stats:', error));
+
+      // Fetch yearly transactions
+      const now = new Date();
+      const year = now.getFullYear();
+      const yearPrefix = `${year}-`;
+      
+      fetch('/api/transactions')
+        .then(response => response.json())
+        .then(data => {
+          const yearlyTransactions = data.filter(t => t.date.startsWith(yearPrefix));
+          
+          // Prepare data for monthly overview chart
+          const monthlyData = [];
+          for (let month = 1; month <= 12; month++) {
+            const monthStr = month < 10 ? `0${month}` : `${month}`;
+            const monthPrefix = `${year}-${monthStr}`;
+            
+            const monthTransactions = yearlyTransactions.filter(t => t.date.startsWith(monthPrefix));
+            const monthIncome = monthTransactions
+              .filter(t => t.type === 'income')
+              .reduce((sum, t) => sum + t.amount, 0);
+            const monthExpense = monthTransactions
+              .filter(t => t.type === 'expense')
+              .reduce((sum, t) => sum + t.amount, 0);
+            
+            monthlyData.push({
+              month,
+              income: monthIncome,
+              expense: monthExpense,
+              net: monthIncome - monthExpense
+            });
+          }
+          
+          renderMonthlyOverviewChart(monthlyData);
+          renderIncomeExpenseChart(monthlyData);
+          renderYearlySummaryTable(monthlyData);
+        })
+        .catch(error => console.error('Error fetching transactions:', error));
+    });
+
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+      }).format(amount);
+    }
+
+    function getMonthName(month) {
+      const monthNames = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      return monthNames[month - 1];
+    }
+
+    function renderMonthlyOverviewChart(data) {
+      const ctx = document.getElementById('monthlyOverviewChart').getContext('2d');
+      
+      const labels = data.map(item => getMonthName(item.month).substring(0, 3));
+      const netData = data.map(item => item.net);
+      
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Net Balance',
+            data: netData,
+            backgroundColor: netData.map(value => value >= 0 ? 'rgba(16, 185, 129, 0.7)' : 'rgba(239, 68, 68, 0.7)'),
+            borderColor: netData.map(value => value >= 0 ? 'rgb(16, 185, 129)' : 'rgb(239, 68, 68)'),
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return 'Rp ' + value.toLocaleString('id-ID');
+                }
+              }
+            }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return 'Net Balance: ' + formatCurrency(context.raw);
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderIncomeExpenseChart(data) {
+      const ctx = document.getElementById('incomeExpenseChart').getContext('2d');
+      
+      const labels = data.map(item => getMonthName(item.month).substring(0, 3));
+      const incomeData = data.map(item => item.income);
+      const expenseData = data.map(item => item.expense);
+      
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Income',
+              data: incomeData,
+              backgroundColor: 'rgba(16, 185, 129, 0.2)',
+              borderColor: 'rgb(16, 185, 129)',
+              borderWidth: 2,
+              tension: 0.1
+            },
+            {
+              label: 'Expense',
+              data: expenseData,
+              backgroundColor: 'rgba(239, 68, 68, 0.2)',
+              borderColor: 'rgb(239, 68, 68)',
+              borderWidth: 2,
+              tension: 0.1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return 'Rp ' + value.toLocaleString('id-ID');
+                }
+              }
+            }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': ' + formatCurrency(context.raw);
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderYearlySummaryTable(data) {
+      const tableBody = document.getElementById('yearlySummary');
+      
+      if (data.length === 0) {
+        tableBody.innerHTML = '<tr><td class="py-2 px-4 border-b" colspan="4">No data available</td></tr>';
+        return;
+      }
+      
+      tableBody.innerHTML = '';
+      data.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="py-2 px-4 border-b">${getMonthName(item.month)}</td>
+          <td class="py-2 px-4 border-b text-right text-green-600">${formatCurrency(item.income)}</td>
+          <td class="py-2 px-4 border-b text-right text-red-600">${formatCurrency(item.expense)}</td>
+          <td class="py-2 px-4 border-b text-right ${item.net >= 0 ? 'text-green-600' : 'text-red-600'}">${formatCurrency(item.net)}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    // Export to Excel functionality
+    document.getElementById('exportExcel').addEventListener('click', function() {
+      // Create a new workbook
+      const wb = XLSX.utils.book_new();
+      
+      // Get yearly data
+      fetch('/api/statistics/yearly')
+        .then(response => response.json())
+        .then(summaryData => {
+          // Create a worksheet for summary
+          const summaryWs = XLSX.utils.json_to_sheet([{
+            Year: summaryData.year,
+            Income: summaryData.income,
+            Expense: summaryData.expense,
+            Net: summaryData.net
+          }]);
+          
+          // Add summary worksheet to workbook
+          XLSX.utils.book_append_sheet(wb, summaryWs, "Summary");
+          
+          // Get transactions for the year
+          fetch('/api/transactions')
+            .then(response => response.json())
+            .then(data => {
+              const now = new Date();
+              const year = now.getFullYear();
+              const yearPrefix = `${year}-`;
+              
+              const yearlyTransactions = data
+                .filter(t => t.date.startsWith(yearPrefix))
+                .map(t => ({
+                  Date: t.date,
+                  Type: t.type.charAt(0).toUpperCase() + t.type.slice(1),
+                  Category: t.category,
+                  Description: t.description || '-',
+                  Amount: t.amount
+                }));
+              
+              if (yearlyTransactions.length > 0) {
+                // Create a worksheet for transactions
+                const transactionsWs = XLSX.utils.json_to_sheet(yearlyTransactions);
+                
+                // Add transactions worksheet to workbook
+                XLSX.utils.book_append_sheet(wb, transactionsWs, "Transactions");
+              }
+              
+              // Monthly summary data
+              const monthlyData = [];
+              for (let month = 1; month <= 12; month++) {
+                const monthStr = month < 10 ? `0${month}` : `${month}`;
+                const monthPrefix = `${year}-${monthStr}`;
+                
+                const monthTransactions = data.filter(t => t.date.startsWith(monthPrefix));
+                const monthIncome = monthTransactions
+                  .filter(t => t.type === 'income')
+                  .reduce((sum, t) => sum + t.amount, 0);
+                const monthExpense = monthTransactions
+                  .filter(t => t.type === 'expense')
+                  .reduce((sum, t) => sum + t.amount, 0);
+                
+                monthlyData.push({
+                  Month: getMonthName(month),
+                  Income: monthIncome,
+                  Expense: monthExpense,
+                  Net: monthIncome - monthExpense
+                });
+              }
+              
+              // Create a worksheet for monthly summary
+              const monthlySummaryWs = XLSX.utils.json_to_sheet(monthlyData);
+              
+              // Add monthly summary worksheet to workbook
+              XLSX.utils.book_append_sheet(wb, monthlySummaryWs, "Monthly Summary");
+              
+              // Generate Excel file
+              const fileName = `Yearly_Finance_Report_${year}.xlsx`;
+              XLSX.writeFile(wb, fileName);
+            });
+        })
+        .catch(error => console.error('Error exporting to Excel:', error));
+    });
+
+    // Export to PNG functionality
+    document.getElementById('exportPNG').addEventListener('click', function() {
+      const reportContent = document.querySelector('main');
+      const now = new Date();
+      const year = now.getFullYear();
+      
+      html2canvas(reportContent, {
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        allowTaint: true
+      }).then(canvas => {
+        // Create image
+        const imgData = canvas.toDataURL('image/png');
+        
+        // Create download link
+        const link = document.createElement('a');
+        link.href = imgData;
+        link.download = `Yearly_Finance_Report_${year}.png`;
+        link.click();
+      });
+    });
+
+    // Check for new year and auto-download
+    function checkForNewYear() {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const currentDate = now.getDate();
+      
+      // Check if it's January 1st
+      if (currentMonth === 0 && currentDate === 1) {
+        // Get last visit from localStorage
+        const lastVisit = localStorage.getItem('lastYearlyVisit');
+        
+        if (lastVisit) {
+          const lastVisitDate = new Date(lastVisit);
+          const lastVisitYear = lastVisitDate.getFullYear();
+          
+          // If we're in a new year compared to the last visit
+          if (currentYear !== lastVisitYear) {
+            // Auto-download the previous year's report
+            setTimeout(() => {
+              alert('New year detected! Downloading previous year report...');
+              document.getElementById('exportExcel').click();
+            }, 1000);
+          }
+        }
+      }
+      
+      // Update last visit
+      localStorage.setItem('lastYearlyVisit', now.toString());
+    }
+
+    // Run the check when the page loads
+    checkForNewYear();
+  </script>
+</body>
+</html>

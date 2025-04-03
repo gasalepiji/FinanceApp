@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finance Manager - Home</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3b82f6',
+            secondary: '#10b981',
+            danger: '#ef4444',
+            dark: '#1e293b',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .nav-link.active {
+      background-color: rgba(59, 130, 246, 0.1);
+      border-left: 4px solid #3b82f6;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <div id="newMonthAlert" class="fixed top-4 right-4 bg-white border-l-4 border-green-500 shadow-lg p-4 rounded-lg transform transition-transform duration-300 translate-y-[-100px] z-50">
+  <div class="flex items-center">
+    <div class="p-2 rounded-full bg-green-100 text-green-500 mr-2">
+      <i class="fas fa-calendar-check"></i>
+    </div>
+    <div>
+      <h3 class="font-bold">New Month Started!</h3>
+      <p class="text-sm">Monthly and yearly reports are available for download.</p>
+    </div>
+    <button id="closeAlert" class="ml-4 text-gray-400 hover:text-gray-600">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  <div class="mt-2 flex space-x-2">
+    <a href="/monthly" class="px-3 py-1 bg-primary text-white rounded-md text-sm">View Monthly Report</a>
+    <a href="/yearly" class="px-3 py-1 bg-secondary text-white rounded-md text-sm">View Yearly Report</a>
+  </div>
+</div>
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <div class="w-64 bg-white shadow-md">
+      <div class="p-4 border-b">
+        <h1 class="text-2xl font-bold text-primary">Finance Manager</h1>
+      </div>
+      <nav class="mt-4">
+        <a href="/" class="nav-link active flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-home mr-3"></i> Home
+        </a>
+        <a href="/profile" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-user mr-3"></i> Profile
+        </a>
+        <a href="/income" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-plus-circle mr-3"></i> Income
+        </a>
+        <a href="/expense" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-minus-circle mr-3"></i> Expense
+        </a>
+        <a href="/weekly" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-calendar-week mr-3"></i> Weekly Report
+        </a>
+        <a href="/monthly" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-calendar-alt mr-3"></i> Monthly Report
+        </a>
+        <a href="/yearly" class="nav-link flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100">
+          <i class="fas fa-chart-line mr-3"></i> Yearly Report
+        </a>
+      </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto">
+      <header class="bg-white shadow-sm">
+        <div class="px-6 py-4">
+          <h2 class="text-xl font-semibold text-gray-800">Dashboard</h2>
+        </div>
+      </header>
+
+      <main class="p-6">
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+              <div class="p-3 rounded-full bg-blue-100 text-blue-500">
+                <i class="fas fa-wallet text-xl"></i>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm text-gray-500 font-medium">Current Balance</p>
+                <h3 class="text-2xl font-bold text-gray-700" id="currentBalance">Loading...</h3>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+              <div class="p-3 rounded-full bg-green-100 text-green-500">
+                <i class="fas fa-arrow-up text-xl"></i>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm text-gray-500 font-medium">Monthly Income</p>
+                <h3 class="text-2xl font-bold text-gray-700" id="monthlyIncome">Loading...</h3>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+              <div class="p-3 rounded-full bg-red-100 text-red-500">
+                <i class="fas fa-arrow-down text-xl"></i>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm text-gray-500 font-medium">Monthly Expense</p>
+                <h3 class="text-2xl font-bold text-gray-700" id="monthlyExpense">Loading...</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+          <h3 class="text-lg font-semibold text-gray-700 mb-4">Monthly Transactions</h3>
+          <canvas id="transactionsChart" height="300"></canvas>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h3 class="text-lg font-semibold text-gray-700 mb-4">Recent Transactions</h3>
+          <div class="overflow-x-auto">
+            <table class="min-w-full bg-white">
+              <thead>
+                <tr>
+                  <th class="py-2 px-4 border-b text-left">Date</th>
+                  <th class="py-2 px-4 border-b text-left">Type</th>
+                  <th class="py-2 px-4 border-b text-left">Category</th>
+                  <th class="py-2 px-4 border-b text-left">Description</th>
+                  <th class="py-2 px-4 border-b text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody id="recentTransactions">
+                <tr>
+                  <td class="py-2 px-4 border-b" colspan="5">Loading transactions...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Set active navigation link
+    document.addEventListener('DOMContentLoaded', function() {
+      const path = window.location.pathname;
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === path) {
+          link.classList.add('active');
+        }
+      });
+
+      // Fetch profile data
+      fetch('/api/profile')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('currentBalance').textContent = formatCurrency(data.balance);
+        })
+        .catch(error => console.error('Error fetching profile:', error));
+
+      // Fetch monthly statistics
+      fetch('/api/statistics/monthly')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('monthlyIncome').textContent = formatCurrency(data.income);
+          document.getElementById('monthlyExpense').textContent = formatCurrency(data.expense);
+        })
+        .catch(error => console.error('Error fetching monthly stats:', error));
+
+      // Fetch recent transactions
+      fetch('/api/transactions')
+        .then(response => response.json())
+        .then(data => {
+          const recentTransactions = data.slice(-5).reverse(); // Get last 5 transactions
+          const tableBody = document.getElementById('recentTransactions');
+          
+          if (recentTransactions.length === 0) {
+            tableBody.innerHTML = '<tr><td class="py-2 px-4 border-b" colspan="5">No transactions found</td></tr>';
+            return;
+          }
+          
+          tableBody.innerHTML = '';
+          recentTransactions.forEach(transaction => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td class="py-2 px-4 border-b">${formatDate(transaction.date)}</td>
+              <td class="py-2 px-4 border-b">
+                <span class="px-2 py-1 rounded-full text-xs ${transaction.type === 'income' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                  ${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
+                </span>
+              </td>
+              <td class="py-2 px-4 border-b">${transaction.category}</td>
+              <td class="py-2 px-4 border-b">${transaction.description || '-'}</td>
+              <td class="py-2 px-4 border-b text-right ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}">
+                ${formatCurrency(transaction.amount)}
+              </td>
+            `;
+            tableBody.appendChild(row);
+          });
+        })
+        .catch(error => console.error('Error fetching transactions:', error));
+
+      // Fetch chart data
+      fetch('/api/statistics/chart')
+        .then(response => response.json())
+        .then(data => {
+          renderChart(data);
+        })
+        .catch(error => console.error('Error fetching chart data:', error));
+    });
+
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+      }).format(amount);
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat('id-ID', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      }).format(date);
+    }
+
+    function renderChart(data) {
+      const ctx = document.getElementById('transactionsChart').getContext('2d');
+      
+      const labels = data.map(item => item.day);
+      const incomeData = data.map(item => item.income);
+      const expenseData = data.map(item => item.expense);
+      
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Income',
+              data: incomeData,
+              backgroundColor: 'rgba(16, 185, 129, 0.7)',
+              borderColor: 'rgb(16, 185, 129)',
+              borderWidth: 1
+            },
+            {
+              label: 'Expense',
+              data: expenseData,
+              backgroundColor: 'rgba(239, 68, 68, 0.7)',
+              borderColor: 'rgb(239, 68, 68)',
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return 'Rp ' + value.toLocaleString('id-ID');
+                }
+              }
+            }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': ' + formatCurrency(context.raw);
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+// Check if it's a new month for notification
+function checkNewMonthNotification() {
+  const now = new Date();
+  const currentDate = now.getDate();
+  
+  // Show notification if it's the first 3 days of the month
+  if (currentDate <= 3) {
+    const lastNotification = localStorage.getItem('lastNewMonthNotification');
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const currentMonthYear = `${currentYear}-${currentMonth}`;
+    
+    if (lastNotification !== currentMonthYear) {
+      // Show the notification
+      const alert = document.getElementById('newMonthAlert');
+      alert.style.transform = 'translateY(0)';
+      
+      // Set the notification as shown for this month
+      localStorage.setItem('lastNewMonthNotification', currentMonthYear);
+      
+      // Close button functionality
+      document.getElementById('closeAlert').addEventListener('click', function() {
+        alert.style.transform = 'translateY(-100px)';
+      });
+    }
+  }
+}
+
+// Run the check when the page loads
+checkNewMonthNotification();
+  </script>
+</body>
+</html>
