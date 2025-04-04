@@ -62,6 +62,14 @@ FinanceApp memprioritaskan keamanan data keuangan Anda:
 
 - **Otentikasi Aman**: Sistem login yang aman dengan opsi otentikasi dua faktor untuk lapisan keamanan tambahan.
 
+- **Perlindungan dari Serangan Siber**: Implementasi mekanisme pertahanan terhadap serangan HTML Injection dan XSS (Cross-Site Scripting):
+  - Sanitasi input untuk menghilangkan kode berbahaya
+  - Headers keamanan melalui Helmet.js
+  - Pembersihan data melalui XSS-Clean
+  - Perlindungan terhadap Parameter Pollution melalui HPP
+  - Pembatasan laju permintaan untuk mencegah serangan brute force
+  - Validasi data input menggunakan Express-Validator
+
 ## Cara Kerja
 
 FinanceApp dirancang untuk berjalan di server pribadi, menawarkan fleksibilitas dan privasi maksimal. Berikut langkah-langkah untuk memulai:
@@ -89,11 +97,11 @@ FinanceApp dirancang untuk berjalan di server pribadi, menawarkan fleksibilitas 
 
 Untuk memastikan kinerja optimal, pastikan sistem Anda memenuhi persyaratan berikut:
 
-1. **Node.js** (versi 14.0.0 atau lebih baru) harus diinstal pada sistem Anda.
+1. **Node.js** (versi 12.0.0 atau lebih baru) harus diinstal pada sistem Anda.
 
 2. Modul-modul npm yang diperlukan harus diinstal menggunakan perintah:
    ```
-   npm i express fs path url
+   npm i express fs path url helmet xss-clean hpp express-rate-limit express-validator
    ```
 
 3. **Ruang Penyimpanan**: Minimal 10MB ruang disk tersedia untuk penyimpanan data dan caching aplikasi.
@@ -109,6 +117,13 @@ FinanceApp dibangun menggunakan teknologi web modern untuk memastikan kinerja, k
 - **Backend**: Node.js dengan Express.js untuk API yang cepat dan efisien.
 
 - **Database**: Sistem penyimpanan data lokal `data/data.json` yang aman dengan pencadangan reguler.
+
+- **Keamanan**:
+  - **Helmet**: Mengamankan aplikasi Express dengan mengatur HTTP headers yang tepat
+  - **XSS-Clean**: Membersihkan input pengguna dari potensi script berbahaya
+  - **HPP (HTTP Parameter Pollution)**: Mencegah serangan melalui manipulasi parameter HTTP
+  - **Express-Rate-Limit**: Membatasi jumlah permintaan ke server dalam jangka waktu tertentu
+  - **Express-Validator**: Memvalidasi dan membersihkan data input dari pengguna
 
 ## Pengembangan Masa Depan
 
@@ -138,7 +153,7 @@ Kami sangat menghargai masukan dari pengguna untuk meningkatkan aplikasi:
 
 - Aplikasi ini terus dikembangkan; periksa pembaruan secara berkala untuk fitur dan perbaikan keamanan baru.
 
-- Modul **Express**, **Fs**, **Path**, dan **Url** adalah komponen inti yang wajib diinstal untuk fungsionalitas yang tepat.
+- Modul **Express**, **Fs**, **Path**, **Url**, **Helmet**, **XSS-Clean**, **HPP**, **Express-Rate-Limit**, dan **Express-Validator** adalah komponen inti yang wajib diinstal untuk fungsionalitas dan keamanan yang tepat.
 
 ---
 
