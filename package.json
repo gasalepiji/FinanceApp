@@ -1,6 +1,6 @@
 {
   "name": "finance-manager",
-  "version": "6.1.12",
+  "version": "6.1.32",
   "type": "module",
   "description": "Personal finance management website",
   "main": "server.js",
