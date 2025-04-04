@@ -9,7 +9,7 @@ import rateLimit from "express-rate-limit" // Rate limiting
 import { validationResult, body } from "express-validator" // Input validation
 
 const app = express()
-const PORT = 5000
+const PORT = process.env.PORT || 5000
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url)
@@ -98,6 +98,95 @@ function writeData(data) {
   } catch (error) {
     console.error("Error writing to data file:", error)
     return false
+  }
+}
+
+// Function to check if it's a new month and generate reports
+function checkForNewMonth() {
+  const now = new Date()
+  const currentDate = now.getDate()
+  const currentMonth = now.getMonth()
+  const currentYear = now.getFullYear()
+
+  // Check if it's the first day of the month
+  if (currentDate === 1) {
+    console.log("First day of the month detected. Checking for data refresh...")
+
+    // Read the last refresh date from a file
+    const lastRefreshFile = path.join(__dirname, "data", "last_refresh.json")
+    let lastRefresh = { month: -1, year: -1 }
+
+    try {
+      if (fs.existsSync(lastRefreshFile)) {
+        lastRefresh = JSON.parse(fs.readFileSync(lastRefreshFile, "utf8"))
+      }
+    } catch (error) {
+      console.error("Error reading last refresh file:", error)
+    }
+
+    // If it's a new month compared to the last refresh
+    if (currentMonth !== lastRefresh.month || currentYear !== lastRefresh.year) {
+      console.log("New month detected. Archiving previous month data...")
+
+      // Archive previous month's data
+      const data = readData()
+      if (data) {
+        // Calculate previous month
+        let prevMonth = currentMonth - 1
+        let prevYear = currentYear
+        if (prevMonth < 0) {
+          prevMonth = 11 // December
+          prevYear -= 1
+        }
+
+        const prevMonthStr = prevMonth + 1 < 10 ? `0${prevMonth + 1}` : `${prevMonth + 1}`
+        const prevMonthPrefix = `${prevYear}-${prevMonthStr}`
+
+        // Filter transactions for the previous month
+        const prevMonthTransactions = data.transactions.filter((t) => t.date.startsWith(prevMonthPrefix))
+
+        if (prevMonthTransactions.length > 0) {
+          // Create archive directory if it doesn't exist
+          const archiveDir = path.join(__dirname, "data", "archive")
+          if (!fs.existsSync(archiveDir)) {
+            fs.mkdirSync(archiveDir, { recursive: true })
+          }
+
+          // Save previous month's data to archive
+          const archiveFile = path.join(archiveDir, `${prevYear}_${prevMonthStr}.json`)
+          fs.writeFileSync(
+            archiveFile,
+            JSON.stringify(
+              {
+                month: prevMonth + 1,
+                year: prevYear,
+                transactions: prevMonthTransactions,
+              },
+              null,
+              2,
+            ),
+            "utf8",
+          )
+
+          console.log(`Archived ${prevMonthTransactions.length} transactions for ${prevYear}-${prevMonthStr}`)
+        }
+      }
+
+      // Update last refresh date
+      fs.writeFileSync(
+        lastRefreshFile,
+        JSON.stringify(
+          {
+            month: currentMonth,
+            year: currentYear,
+            date: now.toISOString(),
+          },
+          null,
+          2,
+        ),
+        "utf8",
+      )
+    }
   }
 }
 
@@ -334,6 +423,9 @@ app.use((err, req, res, next) => {
   console.error(err.stack)
   res.status(500).send('Something went wrong!')
 })
+
+// Check for new month when server starts
+checkForNewMonth()
 
 // Start the server
 app.listen(PORT, () => {

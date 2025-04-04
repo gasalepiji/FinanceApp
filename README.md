@@ -36,6 +36,8 @@ FinanceApp menyediakan alat analisis keuangan yang canggih namun mudah digunakan
 
 - **Perhitungan Otomatis**: Sistem yang secara otomatis menghitung saldo, pengeluaran rata-rata, dan tren pengeluaran berdasarkan data yang dimasukkan.
 
+- **Peringatan Cerdas**: Notifikasi untuk pengeluaran yang tidak biasa atau melebihi anggaran yang telah ditetapkan.
+
 - **Analisis Tren**: Visualisasi grafis tentang bagaimana pola pengeluaran berubah dari waktu ke waktu, membantu pengguna mengidentifikasi area untuk penghematan.
 
 ### 2. Ekspor dan Pencadangan Data
@@ -54,7 +56,11 @@ Fitur ekspor data yang fleksibel untuk kebutuhan dokumentasi dan analisis ekster
 
 FinanceApp memprioritaskan keamanan data keuangan Anda:
 
+- **Enkripsi End-to-End**: Semua data keuangan dienkripsi menggunakan standar industri untuk memastikan kerahasiaan informasi.
+
 - **Penyimpanan Lokal**: Data disimpan secara lokal di server pribadi Anda, memberikan kendali penuh atas informasi keuangan Anda.
+
+- **Otentikasi Aman**: Sistem login yang aman dengan opsi otentikasi dua faktor untuk lapisan keamanan tambahan.
 
 - **Perlindungan dari Serangan Siber**: Implementasi mekanisme pertahanan terhadap serangan HTML Injection dan XSS (Cross-Site Scripting):
   - Sanitasi input untuk menghilangkan kode berbahaya
