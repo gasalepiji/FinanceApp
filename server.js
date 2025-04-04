@@ -2,58 +2,16 @@ import express from "express"
 import fs from "fs"
 import path from "path"
 import { fileURLToPath } from "url"
-import helmet from "helmet" // Security middleware
-import xss from "xss-clean" // Sanitize input
-import hpp from "hpp" // Protect against HTTP Parameter Pollution
-import rateLimit from "express-rate-limit" // Rate limiting
-import { validationResult, body } from "express-validator" // Input validation
 
 const app = express()
-const PORT = 5000
+const PORT = process.env.PORT || 3000
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// Security middleware
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: [
-        "'self'", 
-        "https://cdn.tailwindcss.com", 
-        "https://cdn.jsdelivr.net", 
-        "https://cdnjs.cloudflare.com",
-        "'unsafe-inline'"
-      ],
-      styleSrc: [
-        "'self'", 
-        "https://cdn.tailwindcss.com", 
-        "https://cdn.jsdelivr.net", 
-        "https://cdnjs.cloudflare.com", 
-        "'unsafe-inline'"
-      ],
-      imgSrc: ["'self'", "data:"],
-      connectSrc: ["'self'"],
-    },
-  },
-  xssFilter: true,
-}))
-app.use(xss()) // Sanitize inputs
-app.use(hpp()) // Prevent parameter pollution
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
-  standardHeaders: true,
-  legacyHeaders: false,
-})
-app.use("/api/", limiter)
-
 // Middleware
-app.use(express.json({ limit: '10kb' })) // Body parser with size limit
+app.use(express.json())
 app.use(express.static("public"))
 
 // Ensure data directory and file exist
@@ -68,7 +26,7 @@ function ensureDataFileExists() {
   if (!fs.existsSync(dataFile)) {
     const initialData = {
       profile: {
-        name: "Change with your name in server.js",
+        name: "Alfie Luxiona Lexandra",
         balance: 0,
       },
       transactions: [],
@@ -101,14 +59,96 @@ function writeData(data) {
   }
 }
 
-// Validation middleware for transactions
-const validateTransaction = [
-  body('type').trim().isIn(['income', 'expense']).withMessage('Type must be income or expense'),
-  body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be a positive number'),
-  body('category').trim().isLength({ min: 1, max: 50 }).escape().withMessage('Category is required'),
-  body('description').trim().escape().optional(),
-  body('date').isDate().withMessage('Valid date is required'),
-]
+// Add this function after the writeData function
+
+// Function to check if it's a new month and generate reports
+function checkForNewMonth() {
+  const now = new Date()
+  const currentDate = now.getDate()
+  const currentMonth = now.getMonth()
+  const currentYear = now.getFullYear()
+
+  // Check if it's the first day of the month
+  if (currentDate === 1) {
+    console.log("First day of the month detected. Checking for data refresh...")
+
+    // Read the last refresh date from a file
+    const lastRefreshFile = path.join(__dirname, "data", "last_refresh.json")
+    let lastRefresh = { month: -1, year: -1 }
+
+    try {
+      if (fs.existsSync(lastRefreshFile)) {
+        lastRefresh = JSON.parse(fs.readFileSync(lastRefreshFile, "utf8"))
+      }
+    } catch (error) {
+      console.error("Error reading last refresh file:", error)
+    }
+
+    // If it's a new month compared to the last refresh
+    if (currentMonth !== lastRefresh.month || currentYear !== lastRefresh.year) {
+      console.log("New month detected. Archiving previous month data...")
+
+      // Archive previous month's data
+      const data = readData()
+      if (data) {
+        // Calculate previous month
+        let prevMonth = currentMonth - 1
+        let prevYear = currentYear
+        if (prevMonth < 0) {
+          prevMonth = 11 // December
+          prevYear -= 1
+        }
+
+        const prevMonthStr = prevMonth + 1 < 10 ? `0${prevMonth + 1}` : `${prevMonth + 1}`
+        const prevMonthPrefix = `${prevYear}-${prevMonthStr}`
+
+        // Filter transactions for the previous month
+        const prevMonthTransactions = data.transactions.filter((t) => t.date.startsWith(prevMonthPrefix))
+
+        if (prevMonthTransactions.length > 0) {
+          // Create archive directory if it doesn't exist
+          const archiveDir = path.join(__dirname, "data", "archive")
+          if (!fs.existsSync(archiveDir)) {
+            fs.mkdirSync(archiveDir, { recursive: true })
+          }
+
+          // Save previous month's data to archive
+          const archiveFile = path.join(archiveDir, `${prevYear}_${prevMonthStr}.json`)
+          fs.writeFileSync(
+            archiveFile,
+            JSON.stringify(
+              {
+                month: prevMonth + 1,
+                year: prevYear,
+                transactions: prevMonthTransactions,
+              },
+              null,
+              2,
+            ),
+            "utf8",
+          )
+
+          console.log(`Archived ${prevMonthTransactions.length} transactions for ${prevYear}-${prevMonthStr}`)
+        }
+      }
+
+      // Update last refresh date
+      fs.writeFileSync(
+        lastRefreshFile,
+        JSON.stringify(
+          {
+            month: currentMonth,
+            year: currentYear,
+            date: now.toISOString(),
+          },
+          null,
+          2,
+        ),
+        "utf8",
+      )
+    }
+  }
+}
 
 // API Routes
 app.get("/api/profile", (req, res) => {
@@ -129,14 +169,12 @@ app.get("/api/transactions", (req, res) => {
   }
 })
 
-app.post("/api/transactions", validateTransaction, (req, res) => {
-  // Check for validation errors
-  const errors = validationResult(req)
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() })
-  }
-
+app.post("/api/transactions", (req, res) => {
   const { type, amount, category, description, date } = req.body
+
+  if (!type || !amount || !category || !date) {
+    return res.status(400).json({ error: "Missing required fields" })
+  }
 
   const data = readData()
   if (!data) {
@@ -168,7 +206,6 @@ app.post("/api/transactions", validateTransaction, (req, res) => {
   }
 })
 
-// Sanitized statistics endpoints
 app.get("/api/statistics/daily", (req, res) => {
   const data = readData()
   if (!data) {
@@ -288,18 +325,6 @@ app.get("/api/statistics/chart", (req, res) => {
   res.json(dailyData)
 })
 
-// Serve the HTML pages with appropriate security headers
-const serveWithSecurityHeaders = (req, res, next) => {
-  res.set({
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'SAMEORIGIN',
-    'Referrer-Policy': 'strict-origin-when-cross-origin'
-  })
-  next()
-}
-
-app.use(serveWithSecurityHeaders)
-
 // Serve the HTML pages
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"))
@@ -329,13 +354,12 @@ app.get("/yearly", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "yearly.html"))
 })
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack)
-  res.status(500).send('Something went wrong!')
-})
+// Add this line right before the app.listen() call
+// Check for new month when server starts
+checkForNewMonth()
 
 // Start the server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Server Link : http://localhost:${PORT}`)
 })
