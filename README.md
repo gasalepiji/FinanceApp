@@ -74,24 +74,28 @@ FinanceApp memprioritaskan keamanan data keuangan Anda:
 
 FinanceApp dirancang untuk berjalan di server pribadi, menawarkan fleksibilitas dan privasi maksimal. Berikut langkah-langkah untuk memulai:
 
-1. Buka **Command Prompt** atau **Terminal** pada sistem operasi Anda.
+1. Unduh seluruh file dari Repository ini.
 
-2. Arahkan ke direktori aplikasi menggunakan perintah:
+2. Extract file ke dalam folder yang akan dijadikan folder project.
+   
+3. Buka **Command Prompt** atau **Terminal** pada sistem operasi Anda.
+
+4. Arahkan ke direktori aplikasi menggunakan perintah:
    ```
    cd 'C:/path/to/the/file'
    ```
 
-3. Jalankan aplikasi dengan perintah:
+5. Jalankan aplikasi dengan perintah:
    ```
    npm start
    ```
 
-4. Setelah inisialisasi selesai, buka browser web Anda dan navigasikan ke alamat:
+6. Setelah inisialisasi selesai, buka browser web Anda dan navigasikan ke alamat:
    ```
    http://localhost:5000
    ```
 
-5. Aplikasi akan dimuat dan Anda dapat mulai mengelola keuangan Anda dengan antarmuka yang intuitif dan responsif.
+7. Aplikasi akan dimuat dan Anda dapat mulai mengelola keuangan Anda dengan antarmuka yang intuitif dan responsif.
 
 ## Persyaratan Sistem
 
