@@ -1,4 +1,4 @@
-# FinanceApp
+# FinanceApp (Local Only)
 
 FinanceApp adalah aplikasi manajemen keuangan berbasis web yang komprehensif, dirancang untuk membantu pengguna dalam melacak, menganalisis, dan mengoptimalkan keuangan pribadi mereka. Dengan antarmuka yang intuitif dan fitur-fitur canggih, aplikasi ini menjembatani kesenjangan antara pengelolaan keuangan tradisional dan kebutuhan pengguna modern akan transparansi dan kontrol finansial.
 
